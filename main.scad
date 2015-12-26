@@ -94,8 +94,8 @@ module rod_cap(steppers, rod_dia, rod_spacing, plate_dims){
     difference(){
         union(){
             cylinder(r=max_dia, h = height);
-            translate([0,-max_dia,0])cube([capture, max_dia*2, height]);
-            translate([-max_dia,0,0])cube([max_dia+capture, capture, height]);
+            translate([0,-max_dia,0])cube([capture+max_dia, max_dia*2, height]);
+            translate([-max_dia,0,0])cube([max_dia*2+capture, capture, height]);
         }
         translate([max_dia,max_dia,height/2-plate_dims[Y]/2])cube([capture+1, capture+1, plate_dims[Y]]);
     }
