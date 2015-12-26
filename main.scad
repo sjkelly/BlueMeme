@@ -21,6 +21,12 @@ TODO
 
 */
 
+module e3d(){
+    steel()
+        cylinder(r = 13,h = 62.3);
+}
+
+
 module plate(steppers, plate_dims){
     x_step = object(steppers[X]);
     z_step = object(steppers[Z]);
@@ -38,13 +44,13 @@ module plate(steppers, plate_dims){
                    -z_step[LENGTH]-plate_dims[Y]/2,
                    z_step[WIDTH]/2])
             rotate([-90,0,0])
-                stepper(steppers[Z],diff=true,diff_length=plate_thickness*2);
+                stepper(steppers[Z],diff=true,diff_length=plate_dims[Y]*2);
         // X motor
         translate([-x_step[WIDTH]/2+plate_dims[X],
                    x_step[LENGTH]+plate_thickness/2,
                    -x_step[WIDTH]/2+plate_dims[Z]])
             rotate([90,0,0])
-                stepper(steppers[X],diff=true,diff_length=plate_thickness*2);
+                stepper(steppers[X],diff=true,diff_length=plate_dims[Y]*2);
     }
 }
 
@@ -69,6 +75,29 @@ module rod_end(stepper, rod_dia, spacing,plate_thickness){
                    stepper_obj[WIDTH]/2])
             rotate([-90,0,0])
                 stepper(stepper, diff=true,diff_length=50);
+    }
+}
+
+module rod_cap(steppers, rod_dia, rod_spacing, plate_dims){
+    z_step = object(steppers[Z]);
+    x_step = object(steppers[X]);
+    x_spacing = rod_spacing[X];
+    z_spacing = rod_spacing[Z];
+    max_spacing = max(x_spacing, z_spacing);
+    x_dia = rod_dia[X];
+    z_dia = rod_dia[Z];
+    max_dia = max(x_dia, z_dia);
+    capture = max(z_step[WIDTH], x_step[WIDTH])/2;
+    height = max_spacing+max_dia*2;
+    translate([-max_dia,-height/2,max_dia+plate_dims[Z]])
+    rotate([-90,0,0])
+    difference(){
+        union(){
+            cylinder(r=max_dia, h = height);
+            translate([0,-max_dia,0])cube([capture, max_dia*2, height]);
+            translate([-max_dia,0,0])cube([max_dia+capture, capture, height]);
+        }
+        translate([max_dia,max_dia,height/2-plate_dims[Y]/2])cube([capture+1, capture+1, plate_dims[Y]]);
     }
 }
 
@@ -99,10 +128,12 @@ module assembly(build_volume, rod_dia, steppers, plate_thickness, rod_spacing){
     rod_end(steppers[Z], rod_dia[Z], rod_spacing[Z],plate_thickness);
     // X rod end
     translate([plate_dims[X],0,plate_dims[Z]])
-    rotate([0,90,180])
-    rod_end(steppers[Z], rod_dia[Z], rod_spacing[Z],plate_thickness);
+        rotate([0,90,180])
+            rod_end(steppers[Z], rod_dia[Z], rod_spacing[Z],plate_thickness);
+    rod_cap(steppers, rod_dia, rod_spacing, plate_dims);
     // build volume
     //color(0.5,0.5,0.5,0.1)cube(build_volume);
+    translate([plate_dims[X]/2,plate_dims[Y]/2+13,plate_dims[Z]-62.3])e3d();
 }
 
 
